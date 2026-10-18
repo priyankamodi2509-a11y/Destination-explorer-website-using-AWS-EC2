@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Holiday Packages</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI';
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      background-image: url('Images/bookingimg.jpg');
+      margin: 0;
+    }
+
+    .navbar {
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .box {
+      background: white;
+      width: 400px;
+      margin: 30px auto;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #4caf50;
+      color: white;
+      cursor: pointer;
+    }
+
+    .card {
+      background: white;
+      width: 400px;
+      margin: 15px auto;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    #packageList{
+      display: flex;
+
+    }
+
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .card-content {
+      padding: 15px;
+    }
+
+    .card h3 {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="navbar">🌴 Holiday Packages</div>
+
+<div class="box">
+  <select id="place">
+    <option value="">Select Destination</option>
+    <option>Goa</option>
+    <option>Manali</option>
+    <option>Kerala</option>
+    <option>Jaipur</option>
+  </select>
+
+  <button onclick="showPackages()">View Packages</button>
+</div>
+
+<div id="packageList"></div>
+
+<script>
+const packages = {
+  Goa: [
+    {
+      name: "Beach Paradise",
+      price: "₹15,000",
+      img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
+    },
+    {
+      name: "Luxury Goa Trip",
+      price: "₹25,000",
+      img: "goa.jpg"
+    }
+  ],
+  Manali: [
+    {
+      name: "Snow Adventure",
+      price: "₹18,000",
+      img: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b"
+    }
+  ],
+  Kerala: [
+    {
+      name: "Backwater Bliss",
+      price: "₹20,000",
+      img: "https://images.unsplash.com/photo-1501785888041-af3ef285b470"
+    }
+  ],
+  Jaipur: [
+    {
+      name: "Royal Rajasthan",
+      price: "₹17,000",
+      img: "jaipur.jpg"
+    }
+  ]
+};
+
+function showPackages() {
+  let place = document.getElementById("place").value;
+  let list = document.getElementById("packageList");
+
+  list.innerHTML = "";
+
+  if (place === "") {
+    list.innerHTML = "<p style='text-align:center;color:red;'>Select a destination!</p>";
+    return;
+  }
+
+  let selected = packages[place];
+
+  selected.forEach(pkg => {
+    list.innerHTML += `
+      <div class="card">
+        <img src="${pkg.img}">
+        <div class="card-content">
+          <h3>${pkg.name}</h3>
+          <p>Price: ${pkg.price}</p>
+          <button onclick="bookPackage('${pkg.name}', '${place}', '${pkg.price}')">Book Now</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function bookPackage(name, place, price) {
+  localStorage.setItem("packageBooking", JSON.stringify({name, place, price}));
+  alert("Booked " + name + " in " + place);
+}
+</script>
+
+</body>
+</html>

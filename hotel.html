@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hotel Booking</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI';
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+      background-image: url('Images/bkgrnd.jpg');
+      margin: 0;
+      
+    }
+
+    .navbar {
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .box {
+      background: white;
+      width: 400px;
+      margin: 30px auto;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    select, input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #ff5722;
+      color: white;
+      cursor: pointer;
+    }
+    #hotelList{
+      display: flex;
+    }
+
+    .card {
+      background: white;
+      width: 400px;
+      margin: 15px auto;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .card-content {
+      padding: 15px;
+    }
+
+    .card h3 {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="navbar">🏨 Hotel Booking</div>
+
+<div class="box">
+  <select id="city">
+    <option value="">Select City</option>
+    <option>Delhi</option>
+    <option>Goa</option>
+    <option>Mumbai</option>
+    <option>Jaipur</option>
+    <option>Manali</option>
+    <option>Kerala</option>
+    <option>Bangalore</option>
+  </select>
+
+  <input id="date" type="date">
+
+  <button onclick="searchHotels()">Search Hotels</button>
+
+  <p id="msg" style="color:red;"></p>
+</div>
+
+<div id="hotelList"></div>
+
+<script>
+let today = new Date().toISOString().split("T")[0];
+document.getElementById("date").min = today;
+
+const hotels = {
+  Delhi: [
+    {
+      name: "Taj Palace",
+      price: "₹5000/night",
+      img: "https://images.unsplash.com/photo-1566073771259-6a8506099945"
+    },
+    {
+      name: "Leela Palace",
+      price: "₹7000/night",
+      img: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa"
+    },
+    {
+      name: "Radisson Blu",
+      price: "₹4500/night",
+      img: "https://images.unsplash.com/photo-1590490360182-c33d57733427"
+    }
+  ],
+
+  Goa: [
+    {
+      name: "Beach Resort",
+      price: "₹4000/night",
+      img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
+    },
+    {
+      name: "Sea View Hotel",
+      price: "₹6000/night",
+      img: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b"
+    },
+    {
+      name: "Palm Grove Resort",
+      price: "₹5500/night",
+      img: "https://images.unsplash.com/photo-1571896349842-33c89424de2d"
+    }
+  ],
+
+  Mumbai: [
+    {
+      name: "Taj Hotel",
+      price: "₹8000/night",
+      img: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb"
+    },
+    {
+      name: "Trident Hotel",
+      price: "₹6500/night",
+      img: "https://images.unsplash.com/photo-1564501049412-61c2a3083791"
+    }
+  ],
+
+  Jaipur: [
+    {
+      name: "Raj Palace",
+      price: "₹5000/night",
+      img: "https://images.unsplash.com/photo-1582719508461-905c673771fd"
+    },
+    {
+      name: "Pink City Hotel",
+      price: "₹3500/night",
+      img: "Images/pinkcityhotel.jpg"
+    }
+  ],
+
+  Manali: [
+    {
+      name: "Snow Valley Resort",
+      price: "₹3000/night",
+      img: "https://images.unsplash.com/photo-1501785888041-af3ef285b470"
+    },
+    {
+      name: "Mountain View Hotel",
+      price: "₹4500/night",
+      img: "https://images.unsplash.com/photo-1519681393784-d120267933ba"
+    }
+  ],
+
+  Bangalore: [
+    {
+      name: "ITC Gardenia",
+      price: "₹7000/night",
+      img: "https://images.unsplash.com/photo-1568495248636-6432b97bd949"
+    },
+    {
+      name: "The Oberoi",
+      price: "₹9000/night",
+      img: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa"
+    }
+  ],
+
+  Kerala: [
+    {
+      name: "Backwater Resort",
+      price: "₹6000/night",
+      img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
+    },
+    {
+      name: "Coconut Lagoon",
+      price: "₹7500/night",
+      img: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4"
+    }
+  ]
+};
+
+function searchHotels() {
+  let city = document.getElementById("city").value;
+  let date = document.getElementById("date").value;
+  let msg = document.getElementById("msg");
+  let list = document.getElementById("hotelList");
+
+  list.innerHTML = "";
+
+  if (city === "" || date === "") {
+    msg.innerText = "Fill all fields!";
+    return;
+  }
+
+  if (date < today) {
+    msg.innerText = "Past date not allowed!";
+    return;
+  }
+
+  msg.innerText = "";
+
+  let cityHotels = hotels[city];
+
+  cityHotels.forEach(hotel => {
+    list.innerHTML += `
+      <div class="card">
+        <img src="${hotel.img}">
+        <div class="card-content">
+          <h3>${hotel.name}</h3>
+          <p>${city}</p>
+          <p>${hotel.price}</p>
+          <button onclick="bookHotel('${hotel.name}', '${city}', '${date}')">Book Now</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function bookHotel(name, city, date) {
+  localStorage.setItem("hotelBooking", JSON.stringify({name, city, date}));
+  alert("Booked " + name + " in " + city);
+}
+</script>
+
+</body>
+</html>
