@@ -1,0 +1,75 @@
+DESTINATION EXPLORER — EC2 BACKEND SETUP
+=======================================
+The provided booking.html and package.html replace the existing pages.
+Other site files and Images/ stay as they are. Test in Learner Lab first.
+
+1) Start your existing EC2 instance. Copy its NEW public IP address.
+2) On Windows, create a ZIP with app.py, requirements.txt, booking.html, package.html.
+   Upload it using SCP with your existing .pem key, as you did for your website.
+   Example from the folder containing the ZIP:
+   scp -i "$env:USERPROFILE\Downloads\destination-explorer-key.pem" ".\backend.zip" ubuntu@YOUR_NEW_PUBLIC_IP:/home/ubuntu/
+3) In EC2 Instance Connect terminal:
+   sudo apt update
+   sudo apt install -y python3-venv unzip
+   sudo mkdir -p /opt/destination-explorer/data
+   sudo unzip -o /home/ubuntu/backend.zip -d /opt/destination-explorer
+   sudo chown -R ubuntu:ubuntu /opt/destination-explorer
+   cd /opt/destination-explorer
+   python3 -m venv .venv
+   .venv/bin/pip install -r requirements.txt
+   sudo cp booking.html package.html /var/www/html/
+4) Configure a service (the database stays outside /var/www/html):
+   sudo tee /etc/systemd/system/destination-backend.service >/dev/null <<'EOF'
+   [Unit]
+   Description=Destination Explorer Booking Backend
+   After=network.target
+   [Service]
+   User=ubuntu
+   WorkingDirectory=/opt/destination-explorer
+   Environment=BOOKINGS_DB=/opt/destination-explorer/data/bookings.db
+   ExecStart=/opt/destination-explorer/.venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8000 app:app
+   Restart=always
+   [Install]
+   WantedBy=multi-user.target
+   EOF
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now destination-backend
+   sudo systemctl status destination-backend
+   curl http://127.0.0.1:8000/api/health
+5) Apache reverse proxy to the private backend port (NO public 8000 rule):
+   sudo a2enmod proxy proxy_http
+   sudo tee /etc/apache2/conf-available/destination-api.conf >/dev/null <<'EOF'
+   ProxyPass /api/ http://127.0.0.1:8000/api/
+   ProxyPassReverse /api/ http://127.0.0.1:8000/api/
+   EOF
+   sudo a2enconf destination-api
+   sudo apache2ctl configtest
+   sudo systemctl reload apache2
+6) Test in browser: http://YOUR_NEW_PUBLIC_IP/api/health
+   Then open booking.html, make a test booking and note the returned booking ID.
+   For package bookings, open package.html and click Book Now.
+7) Inspect records ON THE EC2 TERMINAL ONLY (do not publish database):
+   python3 - <<'PYCODE'
+   import sqlite3
+   db = sqlite3.connect('/opt/destination-explorer/data/bookings.db')
+   for row in db.execute('SELECT * FROM bookings ORDER BY id DESC LIMIT 10'):
+       print(row)
+   PYCODE
+
+IMAGES
+------
+Your original /var/www/html/Images folder already stores local images on EC2.
+In package.html, Goa and Jaipur local images use /Images/... . The remaining
+Unsplash image URLs are EXTERNAL, not stored on EC2. To make all images local,
+obtain properly licensed copies, upload them into /var/www/html/Images/ and
+replace the three external URLs with their local /Images/... paths.
+
+IMPORTANT
+---------
+This is an educational booking RECORD system, not a real airline reservation
+or payment service. No customer name, payment, or ticket issuance is implemented.
+The instance's disk/database can be lost if the Learner Lab is reset or resources
+are removed. Keep backups. Use test data only: HTTP is unencrypted. Restrict
+SSH port 22, do not open port 8000, and never upload .pem files or the database
+to public GitHub. For real users, add HTTPS, authentication, authorization,
+proper privacy controls, and backups.
